@@ -6,7 +6,7 @@ A Taonacoin Core docker image.
 
 ## Tags
 
-- `2.2`, `2.2.2`, `latest` ([2.2.2/Dockerfile](https://github.com/micro-exchange/docker-taonacoin-core/blob/master/2.2.2/Dockerfile)) (from master - last commit: [7934224](https://github.com/TaonaProject/Taonacoin/commit/7934224729197b3d6d8e43ae09fe6e0fc090ef9e))
+- `2.2`, `2.2.2`, `latest` ([2.2/Dockerfile](https://github.com/micro-exchange/docker-taonacoin-core/blob/master/2.2/Dockerfile)) (from master - last commit: [7934224](https://github.com/TaonaProject/Taonacoin/commit/7934224729197b3d6d8e43ae09fe6e0fc090ef9e))
 
 **Picking the right tag**
 

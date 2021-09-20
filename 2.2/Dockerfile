@@ -42,7 +42,7 @@ RUN apt-get install -y python3
 
 COPY --from=berkeleydb /opt /opt
 
-ENV TAONACOIN_VERSION=2.2.2
+ENV TAONACOIN_VERSION=2.2
 ENV TAONACOIN_PREFIX=/opt/taonacoin-${TAONACOIN_VERSION}
 
 RUN git clone https://github.com/TaonaProject/Taonacoin.git /taonacoin-${TAONACOIN_VERSION} \
@@ -90,7 +90,7 @@ RUN apt-get install -y curl
 RUN useradd -r taonacoin
 
 ENV TAONACOIN_DATA=/home/taonacoin/.taonacoin
-ENV TAONACOIN_VERSION=2.2.2
+ENV TAONACOIN_VERSION=2.2
 ENV TAONACOIN_PREFIX=/opt/taonacoin-${TAONACOIN_VERSION}
 ENV PATH=${TAONACOIN_PREFIX}/bin:$PATH
 
@@ -99,7 +99,7 @@ COPY docker-entrypoint.sh /entrypoint.sh
 
 VOLUME ["/home/taonacoin/.taonacoin"]
 
-EXPOSE 8332 8333 18332 18333 18444
+EXPOSE 8757 18757 8756 18756 
 
 ENTRYPOINT ["/entrypoint.sh"]
 
