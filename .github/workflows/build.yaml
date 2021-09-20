@@ -63,10 +63,6 @@ jobs:
             fi
           fi
 
-          if [[ ${TAONACOIN_VERSION} != *"alpine"* ]] && [ $(version ${TAONACOIN_VERSION}) -ge $(version "0.19") ]; then
-            PLATFORMS="linux/amd64"
-          fi
-
           echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=docker_platforms::${PLATFORMS}
           echo ::set-output name=docker_username::ruimarinho
