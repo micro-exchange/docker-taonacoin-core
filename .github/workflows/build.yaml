@@ -64,7 +64,7 @@ jobs:
           fi
 
           if [[ ${TAONACOIN_VERSION} != *"alpine"* ]] && [ $(version ${TAONACOIN_VERSION}) -ge $(version "0.19") ]; then
-            PLATFORMS="linux/amd64,linux/arm/v7,linux/arm64"
+            PLATFORMS="linux/amd64"
           fi
 
           echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
