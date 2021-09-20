@@ -9,6 +9,7 @@ RUN apt-get install -y build-essential
 ENV BERKELEYDB_VERSION=db-4.8.30.NC
 ENV BERKELEYDB_PREFIX=/opt/${BERKELEYDB_VERSION}
 
+RUN update-ca-certificates -f
 RUN wget https://download.oracle.com/berkeley-db/${BERKELEYDB_VERSION}.tar.gz
 RUN tar -xzf *.tar.gz
 RUN sed s/__atomic_compare_exchange/__atomic_compare_exchange_db/g -i ${BERKELEYDB_VERSION}/dbinc/atomic.h
