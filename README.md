@@ -165,7 +165,7 @@ Example for running a node in `regtest` mode mapping JSON-RPC/REST and P2P ports
 
 ```sh
 docker run --rm -it \
-  -p 19332:19332 \
+  -p 18756:18756 \
   -p 19444:19444 \
   microexchange/taonacoin-core \
   -printtoconsole \
@@ -177,22 +177,22 @@ docker run --rm -it \
 To test that mapping worked, you can send a JSON-RPC curl request to the host port:
 
 ```
-curl --data-binary '{"jsonrpc":"1.0","id":"1","method":"getnetworkinfo","params":[]}' http://foo:-ngju1uqGUmAJIQDBCgYbatzhcJon_YGU23t313388g=@127.0.0.1:19332/
+curl --data-binary '{"jsonrpc":"1.0","id":"1","method":"getnetworkinfo","params":[]}' http://foo:-ngju1uqGUmAJIQDBCgYbatzhcJon_YGU23t313388g=@127.0.0.1:18756/
 ```
 
 #### Mainnet
 
-- JSON-RPC/REST: 9332
-- P2P: 9333
+- JSON-RPC/REST: 8756
+- P2P: 8757
 
 #### Testnet
 
-- JSON-RPC: 19332
-- P2P: 19333
+- JSON-RPC: 18756
+- P2P: 18757
 
 #### Regtest
 
-- JSON-RPC/REST: 19332
+- JSON-RPC/REST: 18756
 - P2P: 19444
 
 ## Supported Docker versions
