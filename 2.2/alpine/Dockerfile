@@ -1,15 +1,15 @@
 # Build stage for BerkeleyDB
-FROM ubuntu as berkeleydb
+FROM alpine as berkeleydb
 
-RUN apt-get update
-
-RUN apt-get install -y wget
-RUN apt-get install -y build-essential
+RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
+RUN apk --no-cache add autoconf
+RUN apk --no-cache add automake
+RUN apk --no-cache add build-base
+RUN apk --no-cache add libressl
 
 ENV BERKELEYDB_VERSION=db-4.8.30.NC
 ENV BERKELEYDB_PREFIX=/opt/${BERKELEYDB_VERSION}
 
-RUN update-ca-certificates -f
 RUN wget https://download.oracle.com/berkeley-db/${BERKELEYDB_VERSION}.tar.gz
 RUN tar -xzf *.tar.gz
 RUN sed s/__atomic_compare_exchange/__atomic_compare_exchange_db/g -i ${BERKELEYDB_VERSION}/dbinc/atomic.h
@@ -18,29 +18,30 @@ RUN mkdir -p ${BERKELEYDB_PREFIX}
 WORKDIR /${BERKELEYDB_VERSION}/build_unix
 
 RUN ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=${BERKELEYDB_PREFIX}
-RUN make -j4
+RUN make -j`nproc`
 RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
 # Build stage for Taonacoin Core
-FROM ubuntu as taonacoin-core
-
-RUN apt-get update
-
-RUN apt-get install -y git
-RUN apt-get install -y build-essential
-RUN apt-get install -y libzmq3-dev
-RUN apt-get install -y autotools-dev
-RUN apt-get install -y automake
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y pkg-config
-RUN apt-get install -y libtool
-RUN apt-get install -y libboost-all-dev
-RUN apt-get install -y libssl-dev
-RUN apt-get install -y libevent-dev
-RUN apt-get install -y bsdmainutils
-RUN apt-get install -y python3
+FROM alpine as taonacoin-core
 
 COPY --from=berkeleydb /opt /opt
+
+RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
+RUN apk --no-cache add autoconf
+RUN apk --no-cache add automake
+RUN apk --no-cache add boost-dev
+RUN apk --no-cache add build-base
+RUN apk --no-cache add chrpath
+RUN apk --no-cache add file
+RUN apk --no-cache add gnupg
+RUN apk --no-cache add libevent-dev
+RUN apk --no-cache add libressl
+RUN apk --no-cache add libtool
+RUN apk --no-cache add linux-headers
+RUN apk --no-cache add zeromq-dev
+RUN apk --no-cache add git
+RUN apk --no-cache add openssl-dev
 
 ENV TAONACOIN_VERSION=2.2.2
 ENV TAONACOIN_PREFIX=/opt/taonacoin-${TAONACOIN_VERSION}
@@ -51,9 +52,9 @@ RUN git clone https://github.com/TaonaProject/Taonacoin.git /taonacoin-${TAONACO
 
 WORKDIR /taonacoin-${TAONACOIN_VERSION}
 
-# RUN sed -i '/AC_PREREQ/a\AR_FLAGS=cr' src/univalue/configure.ac
-# RUN sed -i '/AX_PROG_CC_FOR_BUILD/a\AR_FLAGS=cr' src/secp256k1/configure.ac
-# RUN sed -i s:sys/fcntl.h:fcntl.h: src/compat.h
+RUN sed -i '/AC_PREREQ/a\AR_FLAGS=cr' src/univalue/configure.ac
+RUN sed -i '/AX_PROG_CC_FOR_BUILD/a\AR_FLAGS=cr' src/secp256k1/configure.ac
+RUN sed -i s:sys/fcntl.h:fcntl.h: src/compat.h
 RUN ./autogen.sh
 
 ADD ./httpserver.patch /taonacoin-${TAONACOIN_VERSION}/src/httpserver.patch 
@@ -69,25 +70,27 @@ RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/incl
     --with-utils \
     --with-libs \
     --with-daemon
-RUN make -j4
+RUN make -j`nproc`
 RUN make install
 RUN strip ${TAONACOIN_PREFIX}/bin/taona-cli
-# RUN strip ${TAONACOIN_PREFIX}/bin/taonacoin-tx
+RUN strip ${TAONACOIN_PREFIX}/bin/taona-tx
 RUN strip ${TAONACOIN_PREFIX}/bin/taonad
-# RUN strip ${TAONACOIN_PREFIX}/lib/libtaonacoinconsensus.a
-# RUN strip ${TAONACOIN_PREFIX}/lib/libtaonacoinconsensus.so.0.0.0
+RUN strip ${TAONACOIN_PREFIX}/lib/libbitcoinconsensus.a
+RUN strip ${TAONACOIN_PREFIX}/lib/libbitcoinconsensus.so.0.0.0
 
 # Build stage for compiled artifacts
-FROM ubuntu
+FROM alpine
 
-RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
-RUN apt-get install -y libzmq3-dev
-RUN apt-get install -y libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev
-RUN apt-get install -y libevent-dev 
-RUN apt-get install -y curl
-
-RUN useradd -r taonacoin
+RUN adduser -S taonacoin
+RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
+RUN apk --no-cache add \
+  boost-filesystem \
+  boost-system \
+  boost-thread \
+  boost-chrono \
+  libevent \
+  libzmq \
+  su-exec
 
 ENV TAONACOIN_DATA=/home/taonacoin/.taonacoin
 ENV TAONACOIN_VERSION=2.2.2
@@ -105,6 +108,6 @@ RUN ["chmod", "+x", "/entrypoint.sh"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-RUN taonad -version | grep "Taona Core Daemon version v${TAONACOIN_VERSION}"
+RUN taonad -version | grep "Taona Core version v${TAONACOIN_VERSION}"
 
 CMD ["taonad"]

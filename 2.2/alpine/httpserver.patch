@@ -1,0 +1,11 @@
+--- httpserver.cpp	2021-09-20 15:39:16.674849311 +0300
++++ httpserver-fix.cpp	2021-09-20 15:39:40.338550530 +0300
+@@ -30,6 +30,8 @@
+ 
+ #include "support/events.h"
+ 
++#include <deque>
++
+ #ifdef EVENT__HAVE_NETINET_IN_H
+ #include <netinet/in.h>
+ #ifdef _XOPEN_SOURCE_EXTENDED

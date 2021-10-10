@@ -9,6 +9,7 @@ jobs:
       matrix:
         version:
           - '2.2'
+          - '2.2/alpine'
       fail-fast: false
     steps:
       - name: Set up Docker Buildx

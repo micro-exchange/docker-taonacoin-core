@@ -6,12 +6,15 @@ A Taonacoin Core docker image.
 
 ## Tags
 
-- `2.2`, `2.2.2`, `latest` ([2.2/Dockerfile](https://github.com/micro-exchange/docker-taonacoin-core/blob/master/2.2/Dockerfile)) (from master - last commit: [7934224](https://github.com/TaonaProject/Taonacoin/commit/7934224729197b3d6d8e43ae09fe6e0fc090ef9e))
-
+- `2.2`, `2.2.2`, `latest` ([2.2/Dockerfile](https://github.com/micro-exchange/docker-taonacoin-core/blob/master/2.2/Dockerfile)) 
+- `2.2-alpine`, `2.2.2-alpine` ([2.2/alpine/Dockerfile](https://github.com/micro-exchange/docker-taonacoin-core/blob/master/2.2/alpine/Dockerfile))
+- 
 **Picking the right tag**
 
 - `microexchange/taonacoin-core:latest`: points to the latest stable release available of Taonacoin Core. Use this only if you know what you're doing as upgrading Taonacoin Core blindly is a risky procedure.
+- `microexchange/taonacoin-core:alpine`: same as above but using the Alpine Linux distribution (a resource efficient Linux distribution with security in mind, but not officially supported by the Taonacoin Core team — use at your own risk).
 - `microexchange/taonacoin-core:<version>`: based on a Ubuntu image, points to a specific version branch or release of Taonacoin Core. Uses the pre-compiled binaries which are fully tested by the Taonacoin Core team.
+- `microexchange/taonacoin-core:<version>-alpine`: same as above but using the Alpine Linux distribution.
 
 ## What is Taonacoin Core?
 
