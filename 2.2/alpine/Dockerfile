@@ -22,15 +22,38 @@ RUN make -j`nproc`
 RUN make install
 RUN rm -rf ${BERKELEYDB_PREFIX}/docs
 
-# Build stage for Taonacoin Core
-FROM alpine as taonacoin-core
+# Build stage for Boost
+FROM alpine as boost
 
 COPY --from=berkeleydb /opt /opt
 
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
+RUN apk --no-cache add openssl
+RUN apk --no-cache add linux-headers
+RUN apk --no-cache add build-base
+RUN apk --no-cache add git
+
+ENV BOOST_VERSION=1.64.0
+ENV BOOST_PREFIX=/opt/boost-${BOOST_VERSION}
+
+RUN wget http://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//./_}.tar.gz
+RUN tar -xzf *.tar.gz
+RUN mkdir -p ${BOOST_PREFIX}
+RUN mv "boost_${BOOST_VERSION//./_}" /boost-${BOOST_VERSION}
+
+WORKDIR /boost-${BOOST_VERSION}
+
+RUN ./bootstrap.sh --prefix=${BOOST_PREFIX}
+RUN ./b2 -j `nproc` install
+
+# Build stage for Taonacoin Core
+FROM alpine as taonacoin-core
+
+COPY --from=boost /opt /opt
+
+RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add autoconf
 RUN apk --no-cache add automake
-RUN apk --no-cache add boost-dev
 RUN apk --no-cache add build-base
 RUN apk --no-cache add chrpath
 RUN apk --no-cache add file
@@ -60,7 +83,9 @@ RUN ./autogen.sh
 ADD ./httpserver.patch /taonacoin-${TAONACOIN_VERSION}/src/httpserver.patch 
 RUN cd /taonacoin-${TAONACOIN_VERSION}/src && patch < httpserver.patch
 
-RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/include/ \
+RUN ./configure LDFLAGS="-L`ls -d /opt/db*`/lib/ -L`ls -d /opt/boost*`/lib/" \
+    CPPFLAGS="-I`ls -d /opt/db*`/include/ -I`ls -d /opt/boost*`/include/" \
+    --with-boost-libdir="`ls -d /opt/boost*`/lib/" \
     --prefix=${TAONACOIN_PREFIX} \
     --mandir=/usr/share/man \
     --disable-tests \
@@ -70,10 +95,11 @@ RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/incl
     --with-utils \
     --with-libs \
     --with-daemon
+
 RUN make -j`nproc`
 RUN make install
 RUN strip ${TAONACOIN_PREFIX}/bin/taona-cli
-RUN strip ${TAONACOIN_PREFIX}/bin/taona-tx
+# RUN strip ${TAONACOIN_PREFIX}/bin/taona-tx
 RUN strip ${TAONACOIN_PREFIX}/bin/taonad
 RUN strip ${TAONACOIN_PREFIX}/lib/libbitcoinconsensus.a
 RUN strip ${TAONACOIN_PREFIX}/lib/libbitcoinconsensus.so.0.0.0
@@ -84,10 +110,6 @@ FROM alpine
 RUN adduser -S taonacoin
 RUN sed -i 's/http\:\/\/dl-cdn.alpinelinux.org/https\:\/\/alpine.global.ssl.fastly.net/g' /etc/apk/repositories
 RUN apk --no-cache add \
-  boost-filesystem \
-  boost-system \
-  boost-thread \
-  boost-chrono \
   libevent \
   libzmq \
   su-exec
@@ -95,6 +117,9 @@ RUN apk --no-cache add \
 ENV TAONACOIN_DATA=/home/taonacoin/.taonacoin
 ENV TAONACOIN_VERSION=2.2.2
 ENV TAONACOIN_PREFIX=/opt/taonacoin-${TAONACOIN_VERSION}
+ENV BOOST_VERSION=1.64.0
+ENV BOOST_PREFIX=/opt/boost-${BOOST_VERSION}
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${BOOST_PREFIX}/lib
 ENV PATH=${TAONACOIN_PREFIX}/bin:$PATH
 
 COPY --from=taonacoin-core /opt /opt
@@ -108,6 +133,6 @@ RUN ["chmod", "+x", "/entrypoint.sh"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-RUN taonad -version | grep "Taona Core version v${TAONACOIN_VERSION}"
+RUN taonad -version | grep "Taona Core Daemon version v${TAONACOIN_VERSION}"
 
 CMD ["taonad"]

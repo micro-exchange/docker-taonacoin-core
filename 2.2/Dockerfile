@@ -51,9 +51,9 @@ RUN git clone https://github.com/TaonaProject/Taonacoin.git /taonacoin-${TAONACO
 
 WORKDIR /taonacoin-${TAONACOIN_VERSION}
 
-# RUN sed -i '/AC_PREREQ/a\AR_FLAGS=cr' src/univalue/configure.ac
-# RUN sed -i '/AX_PROG_CC_FOR_BUILD/a\AR_FLAGS=cr' src/secp256k1/configure.ac
-# RUN sed -i s:sys/fcntl.h:fcntl.h: src/compat.h
+RUN sed -i '/AC_PREREQ/a\AR_FLAGS=cr' src/univalue/configure.ac
+RUN sed -i '/AX_PROG_CC_FOR_BUILD/a\AR_FLAGS=cr' src/secp256k1/configure.ac
+RUN sed -i s:sys/fcntl.h:fcntl.h: src/compat.h
 RUN ./autogen.sh
 
 ADD ./httpserver.patch /taonacoin-${TAONACOIN_VERSION}/src/httpserver.patch 
@@ -69,13 +69,13 @@ RUN ./configure LDFLAGS=-L`ls -d /opt/db*`/lib/ CPPFLAGS=-I`ls -d /opt/db*`/incl
     --with-utils \
     --with-libs \
     --with-daemon
-RUN make -j4
+RUN make -j`nproc`
 RUN make install
 RUN strip ${TAONACOIN_PREFIX}/bin/taona-cli
-# RUN strip ${TAONACOIN_PREFIX}/bin/taonacoin-tx
+# RUN strip ${TAONACOIN_PREFIX}/bin/taona-tx
 RUN strip ${TAONACOIN_PREFIX}/bin/taonad
-# RUN strip ${TAONACOIN_PREFIX}/lib/libtaonacoinconsensus.a
-# RUN strip ${TAONACOIN_PREFIX}/lib/libtaonacoinconsensus.so.0.0.0
+# RUN strip ${TAONACOIN_PREFIX}/lib/libbitcoinconsensus.a
+# RUN strip ${TAONACOIN_PREFIX}/lib/libbitcoinconsensus.so.0.0.0
 
 # Build stage for compiled artifacts
 FROM ubuntu
@@ -86,6 +86,23 @@ RUN apt-get install -y libzmq3-dev
 RUN apt-get install -y libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev
 RUN apt-get install -y libevent-dev 
 RUN apt-get install -y curl
+
+# Install latest su-exec
+RUN  set -ex; \
+     \
+     curl -o /usr/local/bin/su-exec.c https://raw.githubusercontent.com/ncopa/su-exec/master/su-exec.c; \
+     \
+     fetch_deps='gcc libc-dev'; \
+     apt-get update; \
+     apt-get install -y --no-install-recommends $fetch_deps; \
+     rm -rf /var/lib/apt/lists/*; \
+     gcc -Wall \
+         /usr/local/bin/su-exec.c -o/usr/local/bin/su-exec; \
+     chown root:root /usr/local/bin/su-exec; \
+     chmod 0755 /usr/local/bin/su-exec; \
+     rm /usr/local/bin/su-exec.c; \
+     \
+     apt-get purge -y --auto-remove $fetch_deps
 
 RUN useradd -r taonacoin
 
